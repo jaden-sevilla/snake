@@ -32,10 +32,14 @@ namespace Snake
             Point point = new Point(-1,-1);
             if (!IsEmpty())
             {
-                point = queue[queue.Count - 1];
-                queue.RemoveAt(queue.Count - 1);
+                point = queue[0];
+                queue.RemoveAt(0);
             }
             return point;
+        }
+        public Point FindLast()
+        {
+            return queue[queue.Count - 1];
         }
         public bool IsEmpty()
         {
@@ -52,36 +56,52 @@ namespace Snake
             queue = new PointLinearQueue();
             queue.Enqueue(point);
         }
-        public void Move()
-        {
-            Point head;
-            if (direction == "up")
-            {
-                head = new Point(, 0);
-            }
-        }
-        public void ChangeDirection()
+        public string FindDirection()
         {
             if (Console.KeyAvailable)
             {
                 ConsoleKeyInfo keyInfo = Console.ReadKey();
                 if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
-                    direction = "up";
+                    return "up";
                 }
                 else if (keyInfo.Key == ConsoleKey.RightArrow)
                 {
-                    direction = "right";
+                    return "right";
                 }
                 else if (keyInfo.Key == ConsoleKey.DownArrow)
                 {
-                    direction = "down";
+                    return "down";
                 }
                 else if (keyInfo.Key == ConsoleKey.LeftArrow)
                 {
-                    direction = "left";
+                    return "left";
                 }
             }
+            return null;
+        }
+        public void Move()
+        {
+            Point head = queue.FindLast();
+            Point tail = queue.Dequeue();
+            if (direction == "up")
+            {
+                head = new Point(head.X, head.Y - 1);
+            }
+            else if (direction == "right")
+            {
+                head = new Point(head.X + 1, head.Y);
+            }
+            else if (direction == "down")
+            {
+                head = new Point(head.X, head.Y + 1);
+            }
+            else if (direction == "left")
+            {
+                head = new Point(head.X - 1, head.Y);
+            }
+            queue.Enqueue(head);
+            
         }
     }
     internal class Program
@@ -109,14 +129,14 @@ namespace Snake
         {
             Point grid = new Point(50, 20);
             
-            
+            //Point snake = new Point(2, 10);
+            //PrintGrid(grid);
 
-            Point snake = new Point(2, 10);
-            PrintGrid(grid);
+            //Console.SetCursorPosition(snake.X, snake.Y);
+            //Console.WriteLine("■");
 
-            Console.SetCursorPosition(snake.X, snake.Y);
-            Console.WriteLine("■");
-
+            Snake snake = new Snake(2, 1);
+            snake.Move();
             
 
             Console.ReadKey();
