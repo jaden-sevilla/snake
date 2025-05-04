@@ -331,9 +331,12 @@ namespace Snake
                 PrintGameOver(score);
                 Console.SetCursorPosition(12, 37);
                 Console.WriteLine($"Press any key to play again");
-                Thread.Sleep(1000);
-
-                Console.ReadKey();
+				Thread.Sleep(500);
+				while (Console.KeyAvailable)
+				{
+					Console.ReadKey(true);
+				}
+				Console.ReadKey();
             }
         }
     }
