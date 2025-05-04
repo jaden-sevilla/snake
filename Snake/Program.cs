@@ -13,6 +13,10 @@ using System.Globalization;
 
 namespace Snake
 {
+    public static class Globals
+    {
+        public const int AddY = 11;
+    }
     public struct Point
     {
         public int X;
@@ -70,15 +74,35 @@ namespace Snake
         public Snake(int x, int y, Point grid)
         {
             Point point = new Point(x, y);
-            direction = "right";
             this.grid = grid;
             queue = new PointLinearQueue();
             queue.Enqueue(point);
+            Grow();
         }
         public List<Point> GetQueueList()
         {
             return queue.GetList();
         }
+        public void FindStartDirection()
+        {
+			ConsoleKeyInfo keyInfo = Console.ReadKey();
+			if (keyInfo.Key == ConsoleKey.UpArrow && direction != "down")
+			{
+				direction = "up";
+			}
+			else if (keyInfo.Key == ConsoleKey.RightArrow && direction != "left")
+			{
+				direction = "right";
+			}
+			else if (keyInfo.Key == ConsoleKey.DownArrow && direction != "up")
+			{
+				direction = "down";
+			}
+			else if (keyInfo.Key == ConsoleKey.LeftArrow && direction != "right")
+			{
+				direction = "left";
+			}
+		}
         public void FindDirection()
         {
             if (Console.KeyAvailable)
@@ -124,16 +148,19 @@ namespace Snake
                 head = new Point(head.X - 1, head.Y);
             }
 			queue.Enqueue(head);
-
-			Console.SetCursorPosition(head.X * 2, head.Y);
-            Console.ForegroundColor = ConsoleColor.Green;
-			Console.Write("██");
-            Console.ResetColor();
 		}
-        public void Shrink()
+        public void Grow()
+        {
+            Point head = queue.Last();
+			Console.SetCursorPosition(head.X * 2, head.Y + Globals.AddY);
+			Console.ForegroundColor = ConsoleColor.Green;
+			Console.Write("██");
+			Console.ResetColor();
+		}
+		public void Shrink()
         {
             Point tail = queue.Dequeue();
-			Console.SetCursorPosition(tail.X * 2, tail.Y);
+			Console.SetCursorPosition(tail.X * 2, tail.Y + Globals.AddY);
 			Console.Write("  ");
 		}
         public bool CheckCollision()
@@ -190,7 +217,7 @@ namespace Snake
 		}
         public void PrintApple()
         {
-            Console.SetCursorPosition(point.X * 2, point.Y);
+            Console.SetCursorPosition(point.X * 2, point.Y + Globals.AddY);
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Write("██");
 			Console.ResetColor();
@@ -213,6 +240,7 @@ namespace Snake
         public static void PrintGrid(Point grid)
         {
 			Console.ForegroundColor = ConsoleColor.White;
+            Console.SetCursorPosition(0, Globals.AddY);
 			for (int y = 0; y < grid.Y; y++)
             {
                 for (int x = 0; x < grid.X; x++)
@@ -230,46 +258,83 @@ namespace Snake
             }
 			Console.ResetColor();
 		}
-		static void Main(string[] args)
+        public static void PrintScore(int score)
         {
-            //Console.WriteLine($"                 _        \r\n                | |       \r\n ___ _ __   __ _| | _____ \r\n/ __| '_ \\ / _` | |/ / _ \\\r\n\\__ \\ | | | (_| |   <  __/\r\n|___/_| |_|\\__,_|_|\\_\\___|");
-
-            //Console.WriteLine($"\nPress any key");
-            //Console.ReadKey();
-            //Console.Clear();
-            
-            Console.CursorVisible = false;
-            Console.SetWindowSize(100, 30);
-			Point grid = new Point(25, 25);
-			PrintGrid(grid);
-
-			Snake snake = new Snake(2, 2, grid);
-            Apple apple = new Apple(snake, grid);
+            Console.SetCursorPosition(0, 9);
+			Console.Write(new string(' ', Console.WindowWidth));
+			Console.SetCursorPosition(21, 9);
+			Console.Write($"Score: {score}");
+        }
+        public static void PrintGameOver(int score)
+        {
+			Console.SetCursorPosition(0, 9);
+			Console.Write(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(11, 9);
+            Console.Write($"Game over!");
+			Console.SetCursorPosition(31, 9);
+			Console.Write($"Score: {score}");
+		}
+        static void Main(string[] args)
+        {
             while (true)
             {
-                snake.FindDirection();
-                snake.Move();
-                if (snake.CheckCollision())
+				Console.SetWindowSize(50, 40);
+				Console.CursorVisible = false;
+
+				Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("");
+                Console.WriteLine(@"       █████  █     █    █    █    █ ███████ 
+      █     █ ██    █   █ █   █   █  █       
+      █       █ █   █  █   █  █  █   █       
+       █████  █  █  █ █     █ ███    █████   
+            █ █   █ █ ███████ █  █   █       
+      █     █ █    ██ █     █ █   █  █       
+       █████  █     █ █     █ █    █ ███████ ");
+
+                Console.ResetColor();
+
+				Console.WriteLine($"\n           Press arrow buttons to play");
+
+				Point grid = new Point(25, 25);
+				PrintGrid(grid);
+
+				Snake snake = new Snake(12, 12, grid);
+				Apple apple = new Apple(snake, grid);
+                int score = 1;
+
+                snake.FindStartDirection();
+				PrintScore(score);
+
+				while (true)
                 {
-                    break;
+                    snake.FindDirection();
+                    snake.Move();
+                    if (snake.CheckCollision())
+                    {
+                        break;
+                    }
+                    if (snake.HasEatenApple(apple))
+                    {
+                        apple.GeneratePosition();
+                        apple.PrintApple();
+                        score++;
+                        PrintScore(score);
+                    }
+                    else
+                    {
+                        snake.Shrink();
+                    }
+                    snake.Grow();
+                    Thread.Sleep(125);
                 }
-                if (snake.HasEatenApple(apple))
-                {
-                    apple.GeneratePosition();
-                    apple.PrintApple();
-                }
-                else
-                {
-                    snake.Shrink();
-                }
-                Thread.Sleep(100);
+                PrintGameOver(score);
+                Console.SetCursorPosition(12, 37);
+                Console.WriteLine($"Press any key to play again");
+                Thread.Sleep(1000);
+
+                Console.ReadKey();
             }
-            Console.SetCursorPosition(0, grid.Y + 2);
-            Console.WriteLine($"Game over!");
-
-			Thread.Sleep(1000);
-
-			Console.ReadKey();
         }
     }
 }
