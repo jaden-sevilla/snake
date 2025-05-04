@@ -85,7 +85,7 @@ namespace Snake
         }
         public void FindStartDirection()
         {
-			ConsoleKeyInfo keyInfo = Console.ReadKey();
+			ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 			if (keyInfo.Key == ConsoleKey.UpArrow && direction != "down")
 			{
 				direction = "up";
